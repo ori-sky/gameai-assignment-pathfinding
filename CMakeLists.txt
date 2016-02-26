@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.6)
+project(gameai-assignment-pathfinding)
+include_directories(include)
+add_executable(gameai-assignment-pathfinding src/main.cpp)
+set_property(TARGET gameai-assignment-pathfinding PROPERTY CXX_STANDARD 14)
