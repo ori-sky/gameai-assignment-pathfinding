@@ -9,8 +9,7 @@ namespace gameai {
 			std::istream &in;
 			std::basic_ostream<token> &out;
 		public:
-			tokenizer(std::istream &in, std::basic_ostream<token> &out)
-				: in(in), out(out) {}
+			tokenizer(decltype(in) &in, decltype(out) &out) : in(in), out(out) {}
 		};
 	}
 }
