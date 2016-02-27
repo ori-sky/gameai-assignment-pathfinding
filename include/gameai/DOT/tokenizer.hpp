@@ -1,15 +1,14 @@
 #pragma once
 #include <iostream>
-#include <gameai/DOT/token.hpp>
+#include "token.hpp"
 
 namespace gameai {
 	namespace DOT {
-		class tokenizer {
+		template<typename T> class tokenizer : public std::basic_istream<token> {
 		private:
-			std::istream &in;
-			std::basic_ostream<token> &out;
+			T in;
 		public:
-			tokenizer(decltype(in) &in, decltype(out) &out) : in(in), out(out) {}
+			template<typename ...Ts> tokenizer(Ts &&...args) : in(std::forward<Ts>(args)...) {}
 		};
 	}
 }
