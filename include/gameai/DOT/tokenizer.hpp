@@ -1,5 +1,5 @@
 #pragma once
-#include <streambuf>
+#include <iostream>
 #include "token.hpp"
 
 namespace gameai {
@@ -11,15 +11,20 @@ namespace gameai {
 			token tok;
 		public:
 			template<typename ...Ts> tokenbuf(Ts &&...args) : in(std::forward<Ts>(args)...) {
-				token *end = &tok + sizeof(token);
-				setg(&tok, end, end);
+				setg(&tok, &tok, &tok + 1);
 			}
 
 			int_type underflow() {
 				if(gptr() >= egptr()) {
-					char c = 0;
+					char c;
 					in >> c;
+					std::cerr << "c=" << c << ' ';
 					switch(c) {
+					case ' ':
+					case '\r':
+					case '\n':
+					case ';':
+						return underflow();
 					case '{':
 						tok = token::curly_brace_open;
 						break;
@@ -32,13 +37,25 @@ namespace gameai {
 					case ']':
 						tok = token::square_bracket_close;
 						break;
-					case 'g': // temporary test
-						tok = token::identifier;
+					case '=':
+						tok = token::equals;
+						break;
+					case ',':
+						tok = token::comma;
 						break;
 					default:
-						return traits_type::eof();
+						if((c >= 'A' && c <= 'Z') ||
+						   (c >= 'a' && c <= 'z') ||
+						   (c >= '0' && c <= '9') ||
+						    c == '.' ||
+						    c == '"') {
+							tok = token::identifier;
+							break;
+						} else {
+							return traits_type::eof();
+						}
 					}
-					setg(&tok, &tok, &tok + sizeof(token));
+					setg(&tok, &tok, &tok + 1);
 				}
 				return traits_type::to_int_type(*gptr());
 			}

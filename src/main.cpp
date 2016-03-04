@@ -7,10 +7,10 @@ int main(int argc, char **argv) {
 
 	DOT::tokenizer<std::ifstream> tokenizer("assets/graph.dot");
 	DOT::parser parser(tokenizer);
-
-	DOT::token tok;
-	tokenizer.get(tok);
-	std::cout << (int)tok << std::endl;
-
+	while(!tokenizer.eof()) {
+		DOT::token tok;
+		tokenizer.get(tok);
+		std::cout << tok << std::endl;
+	}
 	return 0;
 }
