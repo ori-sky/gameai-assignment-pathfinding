@@ -67,14 +67,24 @@ int main(int argc, char **argv) {
 				 */
 				goto end;
 			}
-			auto dist_to_here = gameai::distance_squared(boost::get(vertex_pos_t(), g, current.vertex),
-			                                             boost::get(vertex_pos_t(), g, target));
+
+			auto w = boost::get(boost::edge_weight, g, edge);
 			auto dist_to_end  = gameai::distance_squared(boost::get(vertex_pos_t(), g, target),
 			                                             boost::get(vertex_pos_t(), g, vertex_map.at(61)));
-			astar_vertex_t next{current.base_cost + dist_to_here, dist_to_end, n, target};
+			astar_vertex_t next{current.base_cost + w, dist_to_end, n, target};
+
+			auto open_find = open_set.find(next);
+			if(open_find != open_set.end() && open_find->total_cost() < next.total_cost()) { continue; }
+
+			auto closed_find = closed_set.find(next);
+			if(closed_find != closed_set.end() && closed_find->total_cost() < next.total_cost()) { continue; }
+
+			open_heap.emplace(next);
+			open_set.emplace(next);
 		}
 		closed_set.emplace(current);
 	}
 end:
+	std::cout << 61 << std::endl;
 	return 0;
 }
