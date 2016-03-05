@@ -1,11 +1,11 @@
 #pragma once
 
 namespace gameai {
-	template<typename T> struct astar_vertex {
+	template<typename VertexT, typename NameT = unsigned long> struct astar_vertex {
 		float base_cost;
 		float end_cost;
-		unsigned int name;
-		T vertex;
+		NameT name;
+		VertexT vertex;
 
 		float total_cost() const {
 			return base_cost + end_cost;
