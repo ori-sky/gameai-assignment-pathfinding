@@ -25,8 +25,23 @@ namespace gameai {
 		return point2<T>{std::abs(p.x), std::abs(p.y)};
 	}
 
-	template<typename T> float distance_squared(const point2<T> &p, const point2<T> &q) {
-		auto dp = abs(p - q);
-		return dp.x * dp.x + dp.y * dp.y;
-	}
+	struct manhattan_distance {
+		template<typename T> float operator()(const point2<T> &p, const point2<T> &q) {
+			auto dp = abs(p - q);
+			return dp.x + dp.y;
+		}
+	};
+
+	struct square_distance {
+		template<typename T> float operator()(const point2<T> &p, const point2<T> &q) {
+			auto dp = abs(p - q);
+			return dp.x * dp.x + dp.y * dp.y;
+		}
+	};
+
+	struct distance {
+		template<typename T> float operator()(const point2<T> &p, const point2<T> &q) {
+			return sqrt(square_distance()(p, q));
+		}
+	};
 }

@@ -24,7 +24,7 @@ public:
 };
 
 /* generalization can sometimes be ugly */
-template<typename ...Ts>
+template<typename HeuristicF, typename ...Ts>
 void astar(const typename boost::graph_traits<boost::adjacency_list<Ts...>>::vertices_size_type &src,
            const typename boost::graph_traits<boost::adjacency_list<Ts...>>::vertices_size_type &dst,
            const boost::adjacency_list<Ts...> &g) {
@@ -61,8 +61,8 @@ void astar(const typename boost::graph_traits<boost::adjacency_list<Ts...>>::ver
 			}
 
 			auto w = boost::get(boost::edge_weight, g, edge);
-			auto dist_to_end  = gameai::distance_squared(boost::get(vertex_pos_t(), g, target),
-			                                             boost::get(vertex_pos_t(), g, vertex_map.at(dst)));
+			auto dist_to_end  = HeuristicF()(boost::get(vertex_pos_t(), g, target),
+			                                 boost::get(vertex_pos_t(), g, vertex_map.at(dst)));
 			astar_vertex_t next{current.base_cost + w, dist_to_end, n, target};
 
 			auto open_find = open_set.find(next);
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 	dp.property("label", boost::get(boost::edge_weight, g));
 
 	boost::read_graphviz(in, g, dp);
-	astar(1, 3, g);
+	astar<gameai::square_distance>(1, 61, g);
 
 	return 0;
 }
