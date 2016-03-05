@@ -10,10 +10,7 @@ struct edge_label_t {
 
 typedef boost::property<vertex_pos_t, std::string> vertex_pos_p;
 typedef boost::property<boost::vertex_name_t, std::string, vertex_pos_p> vertex_p;
-
-typedef boost::property<edge_label_t, int> edge_label_p;
 typedef boost::property<boost::edge_weight_t, int> edge_p;
-
 typedef boost::no_property graph_p;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, vertex_p, edge_p, graph_p> graph_t;
 
