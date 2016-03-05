@@ -1,24 +1,27 @@
+#include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/priority_queue.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <gameai/point2.hpp>
+#include <gameai/astar_vertex.hpp>
 
 struct vertex_pos_t { typedef boost::vertex_property_tag kind; };
 struct edge_label_t { typedef boost::edge_property_tag kind; };
 
-typedef boost::property<vertex_pos_t, gameai::point2<unsigned int>> vertex_pos_p;
+typedef boost::property<vertex_pos_t, gameai::point2<int>> vertex_pos_p;
 typedef boost::property<boost::vertex_name_t, unsigned int, vertex_pos_p> vertex_p;
 typedef boost::property<boost::edge_weight_t, unsigned int> edge_p;
 typedef boost::no_property graph_p;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, vertex_p, edge_p, graph_p> graph_t;
 typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+typedef gameai::astar_vertex<vertex_t> astar_vertex_t;
 
-/*class inverse_comparator {
+template<typename T> class inverse_comparator {
 public:
-	bool operator()(const vertex_t &lhs, const vertex_t &rhs) {
-		return boost::get(vertex_pos_t(), g, lhs > boost::get(vertex_pos_t(), g, rhs);
+	bool operator()(const T &lhs, const T &rhs) const {
+		return lhs > rhs;
 	}
-};*/
+};
 
 int main(int argc, char **argv) {
 	std::ifstream in("assets/graph.dot");
@@ -36,15 +39,42 @@ int main(int argc, char **argv) {
 		vertex_map.emplace(boost::get(boost::vertex_name, g, v), v);
 	}
 
-	//boost::heap::priority_queue<vertex_t, boost::heap::compare<inverse_comparator>> open;
-	//boost::heap::priority_queue<vertex_t, boost::heap::compare<inverse_comparator>> closed;
-	//open.emplace(vertex_map[1]);
+	/* a heap-based priority queue is used to retrive the lowest-cost open node in O(1)
+	 * hash-based sets are used to lookup nodes in O(1)
+	 */
+	boost::heap::priority_queue<astar_vertex_t, boost::heap::compare<inverse_comparator<astar_vertex_t>>> open_heap;
+	boost::unordered_set<astar_vertex_t> open_set;
+	boost::unordered_set<astar_vertex_t> closed_set;
 
-	std::cout << boost::get(boost::vertex_name, g, vertex_map[1]) << std::endl;
-	BOOST_FOREACH(auto edge, boost::out_edges(vertex_map[1], g)) {
-		auto target = boost::target(edge, g);
-		std::cout << "|_" << boost::get(boost::vertex_name, g, target) << std::endl;
+	astar_vertex_t v{0, 0, 1, vertex_map.at(1)};
+	open_heap.emplace(v);
+	open_set.emplace(v);
+
+	while(!open_heap.empty()) {
+		auto current = open_heap.top();
+		open_heap.pop();
+		open_set.erase(current);
+
+		std::cout << boost::get(boost::vertex_name, g, current.vertex) << std::endl;
+
+		BOOST_FOREACH(auto edge, boost::out_edges(current.vertex, g)) {
+			auto target = boost::target(edge, g);
+			auto n = boost::get(boost::vertex_name, g, target);
+			if(n == 61) {
+				/* contrary to popular belief, goto is perfectly safe in C++
+				 * in fact, it conforms to C++ scope and object lifetime
+				 * so this is a perfectly valid optimization
+				 */
+				goto end;
+			}
+			auto dist_to_here = gameai::distance_squared(boost::get(vertex_pos_t(), g, current.vertex),
+			                                             boost::get(vertex_pos_t(), g, target));
+			auto dist_to_end  = gameai::distance_squared(boost::get(vertex_pos_t(), g, target),
+			                                             boost::get(vertex_pos_t(), g, vertex_map.at(61)));
+			astar_vertex_t next{current.base_cost + dist_to_here, dist_to_end, n, target};
+		}
+		closed_set.emplace(current);
 	}
-
+end:
 	return 0;
 }
