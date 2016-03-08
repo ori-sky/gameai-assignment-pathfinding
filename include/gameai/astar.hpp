@@ -1,4 +1,8 @@
 #pragma once
+#include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/container/vector.hpp>
+#include <boost/heap/priority_queue.hpp>
 #include <gameai/inverse_comparator.hpp>
 #include <gameai/astar_vertex.hpp>
 
@@ -17,8 +21,8 @@ namespace gameai {
 	public:
 		astar(const graph_type &g) : g(g) {}
 
-		void path(const typename graph_traits_type::vertices_size_type &src,
-				  const typename graph_traits_type::vertices_size_type &dst) {
+		boost::container::vector<astar_vertex_type> path(const typename graph_traits_type::vertices_size_type &src,
+                                                        const typename graph_traits_type::vertices_size_type &dst) {
 			boost::unordered_map<typename graph_traits_type::vertices_size_type, vertex_type> vertex_map;
 
 			BGL_FORALL_VERTICES_T(v, g, graph_type) {
@@ -37,15 +41,16 @@ namespace gameai {
 			open_heap.emplace(v);
 			open_set.emplace(v);
 
+			boost::unordered_map<astar_vertex_type, astar_vertex_type> came_from;
+
 			while(!open_heap.empty()) {
 				auto current = open_heap.top();
 				open_heap.pop();
 				open_set.erase(current);
 
 				auto n = boost::get(boost::vertex_name, g, current.vertex);
-				std::cout << n << std::endl;
 				if(n == dst) {
-					return;
+					return reconstruct_path(came_from, current);
 				}
 
 				BOOST_FOREACH(auto edge, boost::out_edges(current.vertex, g)) {
@@ -62,11 +67,24 @@ namespace gameai {
 					auto closed_find = closed_set.find(next);
 					if(closed_find != closed_set.end() && closed_find->total_cost() < next.total_cost()) { continue; }
 
+					came_from.emplace(next, current);
 					open_heap.emplace(next);
 					open_set.emplace(next);
 				}
 				closed_set.emplace(current);
 			}
+			return {};
+		}
+
+		boost::container::vector<astar_vertex_type> reconstruct_path(boost::unordered_map<astar_vertex_type, astar_vertex_type> came_from,
+                                                                    astar_vertex_type target) {
+			boost::container::vector<astar_vertex_type> path;
+			path.emplace_back(target);
+			while(came_from.find(target) != came_from.end()) {
+				target = came_from.at(target);
+				path.emplace_back(target);
+			}
+			return path;
 		}
 	};
 	template<typename HeuristicF, typename GraphT> astar<HeuristicF, GraphT> make_astar(const GraphT &g) {

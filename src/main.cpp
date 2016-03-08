@@ -1,6 +1,3 @@
-#include <boost/unordered_set.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/heap/priority_queue.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <gameai/point2.hpp>
 #include <gameai/astar.hpp>
@@ -25,7 +22,10 @@ int main(int argc, char **argv) {
 	boost::read_graphviz(in, g, dp);
 
 	auto astar = gameai::make_astar<gameai::square_distance>(g);
-	astar.path(1, 61);
+	BOOST_REVERSE_FOREACH(auto v, astar.path(1, 61)) {
+		auto n = boost::get(boost::vertex_name, g, v.vertex);
+		std::cout << n << std::endl;
+	}
 
 	return 0;
 }
