@@ -4,13 +4,14 @@
 
 namespace gameai {
 	/* generalization can sometimes be ugly */
-	template<typename HeuristicF, typename VertexT, typename VertexPosT, typename ...Ts>
-	void astar(const typename boost::graph_traits<boost::adjacency_list<Ts...>>::vertices_size_type &src,
-	           const typename boost::graph_traits<boost::adjacency_list<Ts...>>::vertices_size_type &dst,
-	           const boost::adjacency_list<Ts...> &g) {
-		boost::unordered_map<typename boost::graph_traits<boost::adjacency_list<Ts...>>::vertices_size_type, VertexT> vertex_map;
+	template<typename HeuristicF, typename VertexPosT, typename GraphT>
+	void astar(const typename boost::graph_traits<GraphT>::vertices_size_type &src,
+	           const typename boost::graph_traits<GraphT>::vertices_size_type &dst,
+	           const GraphT &g) {
+		typedef typename boost::graph_traits<GraphT>::vertex_descriptor VertexT;
+		boost::unordered_map<typename boost::graph_traits<GraphT>::vertices_size_type, VertexT> vertex_map;
 
-		BGL_FORALL_VERTICES_T(v, g, boost::adjacency_list<Ts...>) {
+		BGL_FORALL_VERTICES_T(v, g, GraphT) {
 			vertex_map.emplace(boost::get(boost::vertex_name, g, v), v);
 		}
 

@@ -13,8 +13,6 @@ typedef boost::property<boost::vertex_name_t, boost::graph_traits<boost::adjacen
 typedef boost::property<boost::edge_weight_t, unsigned int> edge_p;
 typedef boost::no_property graph_p;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, vertex_p, edge_p, graph_p> graph_t;
-typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
-typedef gameai::astar_vertex<vertex_t> astar_vertex_t;
 
 int main(int argc, char **argv) {
 	std::ifstream in("assets/graph.dot");
@@ -22,11 +20,11 @@ int main(int argc, char **argv) {
 	graph_t g;
 	boost::dynamic_properties dp(boost::ignore_other_properties);
 	dp.property("node_id", boost::get(boost::vertex_name, g));
-	dp.property("pos", boost::get(vertex_pos_t(), g));
-	dp.property("label", boost::get(boost::edge_weight, g));
+	dp.property("pos",     boost::get(vertex_pos_t(),     g));
+	dp.property("label",   boost::get(boost::edge_weight, g));
 
 	boost::read_graphviz(in, g, dp);
-	gameai::astar<gameai::square_distance, vertex_t, vertex_pos_t>(1, 61, g);
+	gameai::astar<gameai::square_distance, vertex_pos_t>(1, 61, g);
 
 	return 0;
 }
