@@ -25,7 +25,8 @@ namespace gameai {
 				vertex_map.emplace(boost::get(boost::vertex_name, g, v), v);
 			}
 
-			/* a heap-based priority queue is used to retrive the lowest-cost open node
+			/* a heap-based priority queue is used to retrieve the lowest-cost open node
+			 * the heap is a max heap so an inverse comparator is used to ensure O(1) retrieval
 			 * hash-based sets are used to lookup nodes in O(1)
 			 */
 			boost::heap::priority_queue<astar_vertex_type, boost::heap::compare<inverse_comparator<astar_vertex_type>>> open_heap;
