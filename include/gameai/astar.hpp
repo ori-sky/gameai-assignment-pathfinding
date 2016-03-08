@@ -21,8 +21,9 @@ namespace gameai {
 	public:
 		astar(const graph_type &g) : g(g) {}
 
-		boost::container::vector<astar_vertex_type> path(const typename graph_traits_type::vertices_size_type &src,
-                                                        const typename graph_traits_type::vertices_size_type &dst) {
+		boost::container::vector<boost::shared_ptr<astar_vertex_type>>
+		path(const typename graph_traits_type::vertices_size_type &src,
+		     const typename graph_traits_type::vertices_size_type &dst) {
 			boost::unordered_map<typename graph_traits_type::vertices_size_type, vertex_type> vertex_map;
 
 			BGL_FORALL_VERTICES_T(v, g, graph_type) {
@@ -33,39 +34,43 @@ namespace gameai {
 			 * the heap is a max heap so an inverse comparator is used to ensure O(1) retrieval
 			 * hash-based sets are used to lookup nodes in O(1)
 			 */
-			boost::heap::priority_queue<astar_vertex_type, boost::heap::compare<inverse_comparator<astar_vertex_type>>> open_heap;
-			boost::unordered_set<astar_vertex_type> open_set;
-			boost::unordered_set<astar_vertex_type> closed_set;
+			boost::heap::priority_queue<
+				boost::shared_ptr<astar_vertex_type>,
+				boost::heap::compare<inverse_shared_ptr_comparator<astar_vertex_type>>
+			> open_heap;
+			boost::unordered_set<boost::shared_ptr<astar_vertex_type>> open_set;
+			boost::unordered_set<boost::shared_ptr<astar_vertex_type>> closed_set;
 
-			astar_vertex_type v{0, 0, src, vertex_map.at(src)};
+			auto v = boost::make_shared<astar_vertex_type>(0, 0, src, vertex_map.at(src));
 			open_heap.emplace(v);
 			open_set.emplace(v);
 
-			boost::unordered_map<astar_vertex_type, astar_vertex_type> came_from;
+			boost::unordered_map<boost::shared_ptr<astar_vertex_type>,
+			                     boost::shared_ptr<astar_vertex_type>> came_from;
 
 			while(!open_heap.empty()) {
 				auto current = open_heap.top();
 				open_heap.pop();
 				open_set.erase(current);
 
-				auto n = boost::get(boost::vertex_name, g, current.vertex);
+				auto n = boost::get(boost::vertex_name, g, current->vertex);
 				if(n == dst) {
 					return reconstruct_path(came_from, current);
 				}
 
-				BOOST_FOREACH(auto edge, boost::out_edges(current.vertex, g)) {
+				BOOST_FOREACH(auto edge, boost::out_edges(current->vertex, g)) {
 					auto target = boost::target(edge, g);
 
 					auto w = boost::get(boost::edge_weight, g, edge);
 					auto dist_to_end = heuristic(boost::get(astar_pos_t(), g, target),
 					                             boost::get(astar_pos_t(), g, vertex_map.at(dst)));
-					astar_vertex_type next{current.base_cost + w, dist_to_end, n, target};
+					auto next = boost::make_shared<astar_vertex_type>(current->base_cost + w, dist_to_end, n, target);
 
 					auto open_find = open_set.find(next);
-					if(open_find != open_set.end() && open_find->total_cost() < next.total_cost()) { continue; }
+					if(open_find != open_set.end() && (*open_find)->total_cost() < next->total_cost()) { continue; }
 
 					auto closed_find = closed_set.find(next);
-					if(closed_find != closed_set.end() && closed_find->total_cost() < next.total_cost()) { continue; }
+					if(closed_find != closed_set.end() && (*closed_find)->total_cost() < next->total_cost()) { continue; }
 
 					came_from.emplace(next, current);
 					open_heap.emplace(next);
@@ -76,9 +81,11 @@ namespace gameai {
 			return {};
 		}
 
-		boost::container::vector<astar_vertex_type> reconstruct_path(boost::unordered_map<astar_vertex_type, astar_vertex_type> came_from,
-                                                                    astar_vertex_type target) {
-			boost::container::vector<astar_vertex_type> path;
+		boost::container::vector<boost::shared_ptr<astar_vertex_type>>
+		reconstruct_path(boost::unordered_map<boost::shared_ptr<astar_vertex_type>,
+		                                      boost::shared_ptr<astar_vertex_type>> came_from,
+		                 boost::shared_ptr<astar_vertex_type> target) {
+			boost::container::vector<boost::shared_ptr<astar_vertex_type>> path;
 			path.emplace_back(target);
 			while(came_from.find(target) != came_from.end()) {
 				target = came_from.at(target);

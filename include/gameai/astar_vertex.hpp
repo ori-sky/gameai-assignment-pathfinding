@@ -7,6 +7,11 @@ namespace gameai {
 		NameT name;
 		VertexT vertex;
 
+		astar_vertex(float base_cost, float end_cost, NameT name, VertexT vertex) : base_cost(base_cost),
+		                                                                            end_cost(end_cost),
+		                                                                            name(name),
+		                                                                            vertex(vertex) {}
+
 		float total_cost() const {
 			return base_cost + end_cost;
 		}

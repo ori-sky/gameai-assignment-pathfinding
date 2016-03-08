@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
 	auto astar = gameai::make_astar<gameai::square_distance>(g);
 	BOOST_REVERSE_FOREACH(auto v, astar.path(1, 61)) {
-		auto n = boost::get(boost::vertex_name, g, v.vertex);
+		auto n = boost::get(boost::vertex_name, g, v->vertex);
 		std::cout << n << std::endl;
 	}
 
