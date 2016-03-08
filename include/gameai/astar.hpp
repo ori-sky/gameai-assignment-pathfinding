@@ -42,15 +42,14 @@ namespace gameai {
 				open_heap.pop();
 				open_set.erase(current);
 
-				std::cout << boost::get(boost::vertex_name, g, current.vertex) << std::endl;
+				auto n = boost::get(boost::vertex_name, g, current.vertex);
+				std::cout << n << std::endl;
+				if(n == dst) {
+					return;
+				}
 
 				BOOST_FOREACH(auto edge, boost::out_edges(current.vertex, g)) {
 					auto target = boost::target(edge, g);
-					auto n = boost::get(boost::vertex_name, g, target);
-					if(n == dst) {
-						std::cout << dst << std::endl;
-						return;
-					}
 
 					auto w = boost::get(boost::edge_weight, g, edge);
 					auto dist_to_end = heuristic(boost::get(astar_pos_t(), g, target),
